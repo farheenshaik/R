@@ -1,0 +1,34 @@
+# First attach the 'xgboost' package. The Mushroom dataset
+# is included, already broken into test and train sets ...
+data(agaricus.train, package='xgboost')
+data(agaricus.test, package='xgboost')
+train <- agaricus.train
+test <- agaricus.test
+dim(train$data)
+dim(test$data)
+
+# The test and train datasets are stored as lists, with
+# a data and label part ...
+names(train)
+
+# The data is actually in the form of a dgCMatrix ...
+class(train$data)
+class(train$label)
+
+# Here we train a model on the train set ...
+bstSparse <- xgboost(data = train$data, label = train$label, max.depth = 2, eta = 1, nthread = 2, nround = 2, objective = "binary:logistic")
+
+# The previous model worked with the sparse matrix form ...
+# Here is the more traditional (dense) matrix form ...
+bstDense <- xgboost(data = as.matrix(train$data), label = train$label, max.depth = 2, eta = 1, nthread = 2, nround = 2, objective = "binary:logistic")
+
+# We can also combine the data and label into one dataframe ...
+
+# Now we predict the Test data ...
+pred <- predict(bstDense, test$data)
+prediction <- as.numeric(pred > 0.5)
+print(head(prediction))
+err <- mean(as.numeric(pred > 0.5) != test$label)
+print(paste("test-error=", err))
+
+table(prediction,test$label)
